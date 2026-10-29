@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>IA na Palma da Mão</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700&family=Unbounded:wght@600;800&display=swap">
+<style>
+/* Layout: uma coluna estreita tipo app de celular; trilha vertical de 5 etapas (2 aulas + 1 encontro cada) */
+:root{
+  --bg:#f3f6f1; --card:#ffffff; --fg:#121712; --muted:#566157; --line:#d7ded5;
+  --accent:#0f9d4a; --accent-ink:#ffffff; --accent-soft:#dff5e7; --meet:#b85c00; --meet-soft:#fff0dc;
+  --display:"Unbounded", "Arial Black", system-ui, sans-serif;
+  --body:"Lexend", "Segoe UI", system-ui, sans-serif;
+  --fs:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a0d0a; --card:#141a15; --fg:#eef5ee; --muted:#9fb0a1; --line:#263027;
+  --accent:#39ff88; --accent-ink:#052b12; --accent-soft:#12301d; --meet:#ffb357; --meet-soft:#2e2112; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a0d0a; --card:#141a15; --fg:#eef5ee; --muted:#9fb0a1; --line:#263027;
+  --accent:#39ff88; --accent-ink:#052b12; --accent-soft:#12301d; --meet:#ffb357; --meet-soft:#2e2112; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+a.item,a.big{text-decoration:none}
+html{font-size:var(--fs)}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:1rem;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 48px}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:1.7rem;font-weight:800}
+h2{font-size:1.25rem;font-weight:600}
+h3{font-size:1.02rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-family:var(--display);font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.tools{display:flex;gap:8px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:999px;padding:6px 14px;font-size:.85rem;min-height:40px}
+.hero{display:flex;flex-direction:column;gap:12px}
+.hero p{color:var(--muted)}
+.prog{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.bar{height:14px;border-radius:999px;background:var(--accent-soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .4s}
+.prog b{font-variant-numeric:tabular-nums}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:58px;border:none;border-radius:14px;
+  background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:1.05rem;padding:12px 18px;text-decoration:none}
+.big.ghost{background:transparent;color:var(--fg);border:2px solid var(--line)}
+.big.meet{background:var(--meet);color:#1b0f00}
+/* trilha */
+.etapa{display:flex;flex-direction:column;gap:10px}
+.etapa-h{display:flex;align-items:baseline;gap:10px;color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.etapa-h span{color:var(--fg);text-transform:none;letter-spacing:0;font-size:.95rem}
+.item{display:flex;gap:14px;align-items:center;text-align:left;width:100%;background:var(--card);border:1px solid var(--line);
+  border-radius:16px;padding:14px;color:var(--fg);min-height:72px}
+.item .n{flex:0 0 48px;height:48px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;
+  background:var(--accent-soft);color:var(--fg);font-variant-numeric:tabular-nums}
+.item.done .n{background:var(--accent);color:var(--accent-ink)}
+.item.encontro{background:var(--meet-soft);border-color:transparent}
+.item.encontro .n{background:var(--meet);color:#1b0f00;font-size:.9rem}
+.item .t{display:flex;flex-direction:column;min-width:0}
+.item .t small{color:var(--muted);font-size:.8rem}
+.item .t b{font-weight:600}
+.item.lock{opacity:.55}
+.tag{margin-left:auto;font-size:.75rem;font-weight:700;color:var(--accent);white-space:nowrap}
+.encontro .tag{color:var(--meet)}
+/* aula */
+.back{align-self:flex-start}
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.kicker.m{color:var(--meet)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.goal{background:var(--accent-soft);border:none}
+.need{display:flex;flex-wrap:wrap;gap:8px}
+.need span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.85rem}
+ol.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px;counter-reset:s}
+ol.steps li{display:grid;grid-template-columns:36px 1fr;gap:12px;counter-increment:s}
+ol.steps li::before{content:counter(s);width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--accent-ink);
+  display:grid;place-items:center;font-weight:700;font-variant-numeric:tabular-nums}
+ol.steps li div{min-width:0}
+.k{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:0 8px;font-weight:600;white-space:nowrap}
+.ex{background:var(--bg);border-left:4px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:.95rem}
+.ex.bad{border-left-color:var(--muted);color:var(--muted)}
+.tip{background:var(--meet-soft);border:none}
+.tip h3{color:var(--meet)}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:6px 0;cursor:pointer}
+.chk input{width:26px;height:26px;flex:0 0 26px;accent-color:var(--accent);margin-top:2px}
+dl{margin:0;display:flex;flex-direction:column;gap:10px}
+dt{font-weight:700}
+dd{margin:0;color:var(--muted)}
+.q{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:12px;padding:12px 14px;min-height:52px}
+.opt.ok{border-color:var(--accent);background:var(--accent-soft)}
+.opt.no{border-color:var(--meet);opacity:.8}
+.fb{font-size:.9rem;font-weight:600}
+textarea{width:100%;box-sizing:border-box;min-height:140px;font:inherit;background:var(--bg);color:var(--fg);border:2px solid var(--line);border-radius:12px;padding:12px}
+input[type=text]{width:100%;box-sizing:border-box;font:inherit;background:var(--bg);color:var(--fg);border:2px solid var(--line);border-radius:12px;padding:12px;min-height:52px}
+.nav{display:flex;gap:10px}
+.nav>*{flex:1}
+.cert{border:3px solid var(--accent);border-radius:20px;padding:28px 20px;text-align:center;display:flex;flex-direction:column;gap:14px;background:var(--card)}
+.cert .nome{font-family:var(--display);font-size:1.5rem;font-weight:800;color:var(--accent);word-break:break-word}
+.foot{text-align:center;color:var(--muted);font-size:.75rem;margin-top:12px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);
+  padding:12px 20px;border-radius:999px;font-weight:600;z-index:20;max-width:90vw;text-align:center}
+/* login + professor */
+.login{display:flex;flex-direction:column;gap:14px;margin-top:6vh}
+.login label{font-weight:600;font-size:.9rem}
+.err{color:var(--meet);font-weight:600;min-height:1.4em}
+.prof{background:var(--meet-soft);border:none}
+.prof .item{background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+td,th{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.v{white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto}
+ol.tl{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}
+ol.tl li{display:grid;grid-template-columns:86px 1fr;gap:10px}
+ol.tl .min{font-weight:700;color:var(--meet);font-variant-numeric:tabular-nums;font-size:.85rem;padding-top:2px}
+/* vídeo animado (tela sempre escura, como um player) */
+:root{--vbg:#07110b;--vfg:#eafff1;--vac:#39ff88;--vwarm:#ffb357;--vcard:#13251a}
+.vid{position:relative;aspect-ratio:1/1;max-width:100%;background:var(--vbg);color:var(--vfg);border-radius:14px;overflow:hidden;font-size:clamp(10px,3vw,15px);line-height:1.35}
+@media (min-width:600px){.vid{aspect-ratio:4/3}}
+.vstage{position:absolute;inset:0;display:flex;flex-direction:column;padding:4%;gap:3%;box-sizing:border-box}
+.vtitle{font-family:var(--display);font-weight:800;font-size:1.45em;color:var(--vac);text-align:center;text-wrap:balance}
+.vvis{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:4%}
+.paused *{animation-play-state:paused!important}
+.a{animation:pop .6s ease var(--d,0s) both}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes type{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes glow{0%{box-shadow:0 0 0 0 rgba(57,255,136,.75)}100%{box-shadow:0 0 0 .9em rgba(57,255,136,0)}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes slide{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+.ph{height:100%;aspect-ratio:9/17;max-width:62%;background:#0f1a13;border:3px solid #2c3b31;border-radius:1.6em;padding:.45em;box-sizing:border-box;display:flex;flex-direction:column}
+.ph-scr{flex:1;min-height:0;background:#f6faf7;color:#14211a;border-radius:1.15em;padding:.7em;display:flex;flex-direction:column;gap:.5em;overflow:hidden;font-size:.8em;position:relative}
+.ph-head{background:#0b6b3a;color:#fff;margin:-.7em -.7em 0;padding:.6em .8em;font-weight:700}
+.ph-search{border:1px solid #cfd8d2;border-radius:2em;padding:.4em .8em;background:#fff;color:#14211a}
+.ty{display:inline-block;animation:type 1.1s steps(14) var(--d,0s) both}
+.ph-row{display:flex;gap:.5em;align-items:center;padding:.4em;border-radius:.6em}
+.ph-row b{display:block}
+.ph-row small{display:block;color:#5d6b62}
+.ico{width:2.3em;height:2.3em;border-radius:.6em;background:#1c2b22;flex:0 0 2.3em;display:grid;place-items:center;color:#fff;font-weight:800}
+.ico.ring{border-radius:50%;background:conic-gradient(#4f7cff,#b84fff,#3fd0ff,#4f7cff)}
+.ph-btn{border-radius:2em;padding:.6em;text-align:center;border:1px solid #cfd8d2;background:#fff;font-weight:600}
+.hi{background:#dff5e7!important;outline:2px solid #0f9d4a;animation:pop .6s ease var(--d,0s) both,glow 1.3s ease calc(var(--d,0s) + .7s) 3}
+.bub{max-width:85%;padding:.5em .7em;border-radius:1em;background:#e6ece8;align-self:flex-start}
+.bub.me{align-self:flex-end;background:#0f9d4a;color:#fff}
+.ph-in{margin-top:auto;display:flex;gap:.4em;align-items:center}
+.ph-in .f{flex:1;border:1px solid #cfd8d2;border-radius:2em;padding:.45em .7em;color:#7a877f;background:#fff}
+.dot{width:2.2em;height:2.2em;border-radius:50%;background:#1c2b22;color:#fff;display:grid;place-items:center;flex:0 0 2.2em;font-weight:700}
+.pop{position:absolute;left:12%;bottom:4.2em;background:#14211a;color:#fff;border-radius:.5em;padding:.4em .9em;font-weight:700}
+.vflow{display:flex;align-items:center;justify-content:center;gap:2%;width:100%}
+.dot.hi{color:#0f5a2e}
+.fbx{flex:1 1 0;min-width:0;overflow-wrap:anywhere;hyphens:auto;background:var(--vcard);border:2px solid var(--vac);border-radius:1em;padding:.9em .35em;text-align:center;font-weight:600;font-size:1em}
+.arr{color:var(--vac);font-size:1.5em;flex:0 0 auto}
+.vlist{display:flex;flex-direction:column;gap:.7em;width:min(92%,30em)}
+.vli{display:flex;gap:.7em;align-items:center;background:var(--vcard);border-radius:.8em;padding:.7em 1em;font-size:1.12em}
+.vli i{width:1.8em;height:1.8em;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;flex:0 0 1.8em;background:var(--vac);color:#052b12}
+.vli.x i{background:#ff6b5b;color:#2b0500}
+.vli.w i{background:var(--vwarm);color:#2b1600}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.3em}
+.vgrid span{aspect-ratio:1;border-radius:.3em;position:relative;display:grid;place-items:center;color:#fff;font-weight:800}
+.vba{display:flex;align-items:center;justify-content:center;gap:3%;height:88%;width:100%}
+.vcard{height:100%;max-width:42%;aspect-ratio:3/4;border-radius:1em;overflow:hidden;position:relative;background:#000}
+.vcard svg{width:100%;height:100%;display:block}
+.vcard b{position:absolute;left:.5em;top:.5em;background:rgba(0,0,0,.65);color:#fff;border-radius:.4em;padding:.15em .5em;font-size:.9em}
+.vtl{width:94%;display:flex;flex-direction:column;gap:.7em}
+.trk{display:flex;gap:.5em;align-items:center}
+.trk>small{width:4.5em;flex:0 0 4.5em;color:#a8c7b3}
+.lane{flex:1;display:flex;gap:.25em;height:2.6em}
+.lane span{flex:1;border-radius:.35em;animation:slide .5s ease var(--d,0s) both}
+.wave{flex:1;height:2em;border-radius:.35em;background:repeating-linear-gradient(90deg,var(--vac) 0 3px,transparent 3px 7px);opacity:.75;transform-origin:left;animation:grow 1.4s ease var(--d,0s) both}
+.ruler{position:relative;width:92%;height:3em;background:var(--vcard);border-radius:.6em}
+.zone{position:absolute;top:0;bottom:0;left:25%;width:25%;background:var(--vac);border-radius:.6em;transform-origin:left;animation:grow 1s ease var(--d,0s) both}
+.ticks{display:flex;justify-content:space-between;width:92%;color:#a8c7b3;font-variant-numeric:tabular-nums}
+.vbig{text-align:center;font-family:var(--display);font-weight:800;font-size:2.2em;color:var(--vac)}
+.pbar{height:.8em;border-radius:1em;background:#dfe7e2;overflow:hidden}
+.pbar i{display:block;height:100%;background:#0f9d4a;transform-origin:left;animation:grow 2s linear var(--d,0s) both}
+.vposter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8em;text-align:center;padding:6%;
+  background:radial-gradient(circle at 50% 40%,#123a22,var(--vbg) 70%);border:none;color:var(--vfg);width:100%;font:inherit;cursor:pointer}
+.vposter .pl{width:4.5em;height:4.5em;border-radius:50%;background:var(--vac);color:#052b12;display:grid;place-items:center;font-size:1.4em}
+.vposter b{font-family:var(--display);font-size:1.5em;color:var(--vac)}
+.vcap{background:var(--bg);border-radius:12px;padding:12px 14px;min-height:4.8em;font-size:1rem}
+.vctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vbtn{min-height:48px;min-width:48px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--fg);font-weight:700}
+.vbtn.play{flex:1;background:var(--accent);color:var(--accent-ink);border:none}
+.vprog{height:8px;background:var(--accent-soft);border-radius:8px;overflow:hidden}
+.vprog i{display:block;height:100%;width:0;background:var(--accent)}
+.vtime{display:flex;justify-content:space-between;color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}.a,.hi,.ty,.lane span,.wave,.zone,.pbar i{animation:none!important}}
+</style>
+
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const S = (k, d) => { try { const v = localStorage.getItem('ia_' + k); return v === null ? d : JSON.parse(v) } catch (e) { return d } };
+const W = (k, v) => { try { localStorage.setItem('ia_' + k, JSON.stringify(v)) } catch (e) {} };
+
+const K = t => `<span class="k">${t}</span>`;
+
+const AULAS = [
+ { t:"O celular sem medo", min:"30 min",
+   goal:"Aprender a mexer no celular com segurança: tocar, arrastar, voltar, trocar de app e instalar aplicativos pela Play Store.",
+   need:["Celular carregado","Internet (Wi-Fi ou dados)"],
+   intro:"Antes de usar inteligência artificial, a gente precisa ficar à vontade com o celular. Não tem como estragar nada só tocando na tela. Se ficar perdido, é só voltar.",
+   steps:[
+    `<b>Os toques.</b> ${K("Tocar")} uma vez abre as coisas. ${K("Segurar o dedo")} mostra mais opções. ${K("Arrastar")} rola a tela para cima e para baixo. Abrir e fechar dois dedos na tela aumenta ou diminui uma foto.`,
+    `<b>Os três caminhos de fuga.</b> Na parte de baixo da tela tem: ${K("◁ Voltar")}, ${K("○ Início")} (volta para a tela principal) e ${K("☰ Recentes")} (mostra os apps abertos). Se o seu celular não tem esses botões, deslize o dedo de baixo para cima.`,
+    `<b>Internet.</b> Puxe o dedo do topo da tela para baixo. Aparecem os atalhos. O ícone de leque é o ${K("Wi-Fi")}. Em casa, use sempre o Wi-Fi para não gastar o pacote de dados.`,
+    `<b>A loja de apps.</b> Abra a ${K("Play Store")} (triângulo colorido). Toque na lupa, digite o nome do app e toque em ${K("Instalar")}. No iPhone, a loja se chama ${K("App Store")}.`,
+    `<b>Achar o app depois.</b> O app instalado aparece na tela inicial ou na gaveta de apps (deslize de baixo para cima na tela inicial). Segure o ícone e arraste para onde quiser.`
+   ],
+   tip:"Antes de instalar qualquer app, olhe o nome da empresa embaixo do nome do app. Tem muito app falso imitando os famosos.",
+   pratica:["Abri e fechei 3 apps diferentes usando o botão Voltar","Usei o botão Recentes para trocar de um app para outro","Liguei o Wi-Fi pela barra de cima","Procurei o app “Google” na Play Store e vi se tinha botão Atualizar"],
+   quiz:[{q:"Fiquei perdido numa tela estranha. O que eu faço?",o:["Desligo o celular","Toco em Voltar ou em Início","Tiro a bateria"],c:1,e:"Voltar e Início sempre te tiram de qualquer tela."},
+         {q:"Onde instalo aplicativos no Android?",o:["No navegador","Na Play Store","No WhatsApp"],c:1,e:"A Play Store é a loja oficial de apps do Android."}],
+   glos:[["App","Programa do celular. WhatsApp, Instagram e ChatGPT são apps."],["Ícone","O desenho que você toca para abrir um app."],["Notificação","Aviso que aparece no topo da tela."]]
+ },
+ { t:"Conhecendo a IA e o ChatGPT", min:"40 min",
+   goal:"Entender o que é inteligência artificial, instalar o ChatGPT, criar a conta e ter a primeira conversa, digitando e falando.",
+   need:["Conta do Google (o e-mail do celular)","Play Store funcionando"],
+   intro:"Inteligência artificial (IA) é um programa que aprendeu lendo e vendo uma quantidade enorme de textos e imagens. Você conversa com ela como se fosse uma pessoa, e ela responde, escreve, cria imagens e até músicas. Ela é muito útil, mas às vezes erra. Pense nela como um ajudante esperto, não como um professor que sabe tudo.",
+   steps:[
+    `Na Play Store, procure ${K("ChatGPT")}. Confira se embaixo está escrito <b>OpenAI</b>. Toque em ${K("Instalar")}.`,
+    `Abra o app e toque em ${K("Continuar com o Google")}. Escolha o seu e-mail. Pronto, a conta está criada, sem precisar inventar senha nova.`,
+    `Embaixo tem a caixa de mensagem. Toque nela, escreva <i>“Oi, me explica o que você sabe fazer, de um jeito simples”</i> e toque na setinha para enviar.`,
+    `Não gosta de digitar? Toque no ${K("🎤 microfone")} e fale. O que você falar vira texto.`,
+    `Tem também o modo de <b>conversa por voz</b> (ícone de ondinhas ao lado da caixa de texto). Nele você conversa falando e a IA responde falando, como numa ligação.`
+   ],
+   tip:"Pode perguntar qualquer coisa, sem vergonha. A IA não julga. Se a resposta ficou difícil, escreva: “explica de novo como se eu tivesse 10 anos”.",
+   pratica:["Instalei o ChatGPT (da OpenAI)","Entrei com a minha conta do Google","Fiz 3 perguntas digitando","Fiz 1 pergunta pelo microfone","Testei a conversa por voz"],
+   quiz:[{q:"A IA pode errar?",o:["Nunca, ela sabe tudo","Sim, por isso confiro o que for importante"],c:1,e:"Ela erra às vezes. Coisa importante (saúde, dinheiro, documentos) sempre confira."},
+         {q:"Como sei se o app ChatGPT é o verdadeiro?",o:["Pelo ícone bonito","Vendo se embaixo está escrito OpenAI","Pelo número de cores"],c:1,e:"O ChatGPT verdadeiro é da empresa OpenAI."}],
+   glos:[["IA","Inteligência artificial: programa que conversa e cria coisas."],["Chat","Conversa por mensagem."],["Prompt","O pedido que você faz para a IA."]]
+ },
+ { t:"Como pedir as coisas para a IA", min:"40 min",
+   goal:"Aprender a fazer pedidos claros para receber respostas boas, e a pedir ajustes quando a resposta não agradar.",
+   need:["ChatGPT instalado"],
+   intro:"A IA responde melhor quando você explica direitinho o que quer. É igual pedir um lanche: “um lanche” é vago, “X-salada sem cebola com batata” é certeiro.",
+   steps:[
+    `<b>Use a receita do bom pedido:</b> ${K("O quê")} você quer + ${K("Para quem")} é + ${K("Como")} deve ficar (tamanho, jeito de falar).`,
+    `Veja a diferença:<div class="ex bad">“faz um texto de aniversário”</div><div class="ex">“Escreve uma mensagem de aniversário para o meu primo João, que faz 30 anos. Tom engraçado, curta, para mandar no WhatsApp.”</div>`,
+    `<b>Não gostou?</b> Não precisa começar de novo. Responda na mesma conversa: <i>“mais curto”</i>, <i>“mais engraçado”</i>, <i>“sem palavras difíceis”</i>, <i>“me dá 3 opções”</i>.`,
+    `<b>Assunto novo, conversa nova.</b> Toque no ícone de ${K("lápis / nova conversa")} no topo. Assim a IA não mistura os assuntos.`,
+    `<b>Achar conversas antigas.</b> Toque no ${K("☰ menu")} no canto de cima. Todas as conversas ficam salvas ali.`
+   ],
+   tip:"Peça para a IA te fazer perguntas: “antes de responder, me pergunta o que você precisa saber”. Ela mesma te ajuda a montar o pedido.",
+   pratica:["Pedi uma mensagem de aniversário usando a receita (o quê + para quem + como)","Pedi para deixar a resposta mais curta","Pedi 3 opções diferentes","Abri uma conversa nova e achei a antiga no menu"],
+   quiz:[{q:"Qual pedido é melhor?",o:["“receita”","“Receita de bolo de cenoura simples, para 6 pessoas, sem batedeira”"],c:1,e:"Quanto mais detalhe, melhor a resposta."},
+         {q:"Não gostei da resposta. O que faço?",o:["Desisto","Peço ajuste na mesma conversa: “mais curto”, “mais simples”"],c:1,e:"Você pode ajustar quantas vezes quiser."}],
+   glos:[["Histórico","Lista das conversas antigas."],["Tom","O jeito de falar: sério, engraçado, carinhoso."]]
+ },
+ { t:"IA no dia a dia: foto, voz e WhatsApp", min:"45 min",
+   goal:"Usar a câmera com a IA, copiar e colar textos entre apps e conhecer a Meta AI dentro do WhatsApp.",
+   need:["ChatGPT instalado","WhatsApp"],
+   intro:"Agora a IA sai do app e entra na sua rotina: você tira uma foto e pergunta sobre ela, pede um texto e cola direto no WhatsApp.",
+   steps:[
+    `<b>Foto + pergunta.</b> No ChatGPT, toque no ${K("+")} ao lado da caixa de texto, escolha ${K("Câmera")}, tire a foto e escreva a pergunta. Exemplo: foto de uma planta + <i>“que planta é essa e como cuido dela?”</i>.`,
+    `<b>Copiar.</b> Embaixo de cada resposta tem um ícone de ${K("copiar")} (dois quadradinhos). Toque nele. Ou segure o dedo em cima do texto e toque em ${K("Copiar")}.`,
+    `<b>Colar.</b> Abra o WhatsApp, entre na conversa, segure o dedo na caixa de mensagem e toque em ${K("Colar")}. Revise e envie.`,
+    `<b>Meta AI no WhatsApp.</b> Na lista de conversas do WhatsApp aparece um <b>círculo colorido</b> (azul e roxo). É a IA da Meta. Toque nele e converse como se fosse um contato.`,
+    `<b>Ditado em qualquer lugar.</b> No teclado do celular também tem um ${K("🎤 microfone")}. Serve para falar em vez de digitar em qualquer app.`
+   ],
+   tip:"Antes de colar e enviar um texto da IA, leia tudo. Troque o que não tiver a sua cara. A mensagem é sua, a IA só ajudou.",
+   pratica:["Tirei foto de alguma coisa e perguntei sobre ela","Copiei uma resposta do ChatGPT e colei no WhatsApp","Abri a Meta AI no WhatsApp e fiz uma pergunta","Usei o microfone do teclado para escrever uma mensagem"],
+   quiz:[{q:"Como levo um texto do ChatGPT para o WhatsApp?",o:["Copiar no ChatGPT e Colar no WhatsApp","Tiro print e digito tudo de novo"],c:0,e:"Copiar e colar economiza muito tempo."},
+         {q:"Onde fica a IA dentro do WhatsApp?",o:["No círculo colorido da Meta AI","Nas configurações de privacidade"],c:0,e:"A Meta AI aparece como um círculo colorido nas conversas."}],
+   glos:[["Copiar e colar","Guardar um texto e colocar em outro lugar."],["Meta AI","A IA da empresa dona do WhatsApp e do Instagram."]]
+ },
+ { t:"Criando imagens com IA", min:"45 min",
+   goal:"Criar imagens só descrevendo o que você imagina, e salvar na galeria do celular.",
+   need:["ChatGPT ou Meta AI no WhatsApp"],
+   intro:"Essa é a parte mágica. Você descreve uma cena e a IA desenha. Pode ser foto realista, desenho animado, pintura, o que imaginar.",
+   steps:[
+    `<b>No ChatGPT</b>, escreva começando com <i>“Crie uma imagem de…”</i>. Espere alguns segundos.`,
+    `<b>Na Meta AI do WhatsApp</b>, escreva <i>“Imagine…”</i> e descreva a cena. Ela também cria imagens.`,
+    `<b>A receita da imagem:</b> ${K("Quem/o quê")} + ${K("Onde")} + ${K("Estilo")} + ${K("Formato")}.<div class="ex">“Crie uma imagem de um cachorro caramelo de óculos escuros tocando violão numa laje no Rio, ao pôr do sol, estilo desenho animado 3D, formato vertical.”</div>`,
+    `<b>Ajustes.</b> Peça mudanças: <i>“agora de noite”</i>, <i>“mais realista”</i>, <i>“tira o violão e coloca um pandeiro”</i>.`,
+    `<b>Salvar.</b> Toque na imagem para abrir grande e procure ${K("Baixar")} ou ${K("Salvar")} (seta para baixo). A imagem vai para a ${K("Galeria")}.`
+   ],
+   tip:"Formato vertical é o ideal para status do WhatsApp, stories e TikTok. Quadrado é bom para post do Instagram. Os apps grátis têm um limite de imagens por dia. Se acabar, tente amanhã ou use outro app.",
+   pratica:["Criei uma imagem no ChatGPT","Criei uma imagem na Meta AI do WhatsApp","Pedi 2 ajustes na mesma imagem","Salvei uma imagem na galeria","Postei uma imagem no meu status"],
+   quiz:[{q:"O que deixa a imagem mais parecida com o que imaginei?",o:["Pedir só “um cachorro”","Descrever quem, onde, estilo e formato"],c:1,e:"Detalhe é tudo na hora de criar imagem."},
+         {q:"Qual formato é melhor para status e stories?",o:["Vertical","Horizontal"],c:0,e:"Vertical ocupa a tela inteira do celular."}],
+   glos:[["Galeria","Onde ficam as fotos e imagens do celular."],["Estilo","O jeito da imagem: foto real, desenho, pintura, 3D."]]
+ },
+ { t:"Fotos: editar e transformar", min:"45 min",
+   goal:"Mandar suas próprias fotos para a IA e transformar: virar desenho, trocar o fundo, melhorar, criar artes.",
+   need:["Algumas fotos na galeria","ChatGPT ou Gemini"],
+   intro:"Além de criar do zero, a IA mexe nas fotos que você já tem. Dá para transformar uma foto sua em desenho, mudar o cenário ou criar uma arte para divulgar algo.",
+   steps:[
+    `No ChatGPT, toque no ${K("+")} e escolha ${K("Fotos")}. Selecione uma foto da galeria.`,
+    `Escreva o que quer: <i>“transforme essa foto em desenho animado”</i>, <i>“coloque um fundo de praia”</i>, <i>“deixe com cara de capa de revista”</i>.`,
+    `<b>Outra opção: o Gemini</b>, a IA do Google. Instale pela Play Store (empresa: <b>Google</b>) e entre com a mesma conta. Ele também recebe fotos e edita.`,
+    `<b>Arte com texto.</b> Peça: <i>“crie uma arte de divulgação para o meu churrasco de sábado, 15h, com o texto ‘Churrasco do Zé’”</i>. Confira se as letras saíram certas, porque às vezes a IA erra na escrita.`,
+    `Salve o resultado na galeria do mesmo jeito da aula anterior.`
+   ],
+   tip:"Só edite foto de outra pessoa se ela deixar. E nunca use a IA para fazer foto falsa de alguém para enganar ou zoar. Isso pode dar problema sério.",
+   pratica:["Mandei uma foto minha e transformei em desenho","Troquei o fundo de uma foto","Instalei o Gemini e testei com uma foto","Criei uma arte com texto e conferi as letras"],
+   quiz:[{q:"Posso editar a foto de um amigo e postar?",o:["Sim, sem perguntar","Só se ele deixar"],c:1,e:"Respeito em primeiro lugar. Sempre peça permissão."},
+         {q:"A IA criou uma arte com o texto errado. O que faço?",o:["Posto assim mesmo","Peço para corrigir o texto ou corrijo depois"],c:1,e:"A IA às vezes erra letras. Sempre confira."}],
+   glos:[["Gemini","A IA do Google."],["Fundo","O cenário atrás da pessoa ou objeto na foto."]]
+ },
+ { t:"Música com IA", min:"50 min",
+   goal:"Criar uma música completa: a letra com o ChatGPT e a música cantada com o app Suno.",
+   need:["ChatGPT","App Suno (vamos instalar)"],
+   intro:"Hoje você vira compositor. A IA escreve a letra e outra IA canta e toca a música, no estilo que você escolher: pagode, sertanejo, funk, forró, rock…",
+   steps:[
+    `<b>A letra.</b> No ChatGPT: <div class="ex">“Escreve uma letra de pagode alegre sobre um churrasco de domingo com os amigos. Refrão fácil de cantar. Máximo 2 estrofes e 1 refrão.”</div>Copie a letra.`,
+    `<b>Instale o Suno.</b> Na Play Store, procure ${K("Suno")}. Confira a empresa e instale. Entre com a conta do Google.`,
+    `<b>Jeito fácil:</b> toque em ${K("Criar / Create")} e só descreva: <i>“pagode alegre sobre churrasco de domingo, voz masculina, em português”</i>.`,
+    `<b>Jeito com a sua letra:</b> ative o modo ${K("Personalizado / Custom")}, cole a letra no campo de letra e escreva o estilo (ex: <i>pagode, cavaquinho, alegre</i>).`,
+    `O app cria duas versões. Ouça as duas, escolha a melhor e use ${K("Compartilhar")} ou ${K("Baixar")} para mandar no WhatsApp.`
+   ],
+   tip:"O plano grátis do Suno dá uma quantidade de criações por dia. Para usar música em algo que dá dinheiro (propaganda, venda), confira as regras do plano antes, porque normalmente precisa do plano pago.",
+   pratica:["Criei uma letra no ChatGPT","Instalei o Suno e entrei com o Google","Criei uma música pelo jeito fácil","Criei uma música colando a minha letra","Mandei uma música para alguém no WhatsApp"],
+   quiz:[{q:"Qual app usamos para a IA cantar a música?",o:["Suno","Calculadora","Play Store"],c:0,e:"O Suno transforma texto em música cantada."},
+         {q:"Posso usar a música do plano grátis numa propaganda paga?",o:["Sempre pode","Preciso conferir as regras do plano antes"],c:1,e:"Uso comercial geralmente exige plano pago."}],
+   glos:[["Refrão","A parte da música que repete."],["Créditos","Moedinhas do app que você gasta para criar."]]
+ },
+ { t:"Vídeos com IA", min:"50 min",
+   goal:"Montar vídeos curtos no CapCut com fotos, música e legenda automática, e conhecer as IAs que criam vídeo.",
+   need:["App CapCut (vamos instalar)","Fotos ou vídeos na galeria"],
+   intro:"Vídeo é o que mais faz sucesso nas redes. O CapCut é um editor de vídeo de celular que tem várias ferramentas de IA, como a legenda que se escreve sozinha.",
+   steps:[
+    `Instale o ${K("CapCut")} pela Play Store e abra.`,
+    `Toque em ${K("Novo projeto")}, escolha 4 ou 5 fotos ou vídeos da galeria e toque em ${K("Adicionar")}.`,
+    `<b>Música.</b> Toque em ${K("Áudio")} para colocar uma música. Pode ser a do Suno que você salvou.`,
+    `<b>Legenda automática.</b> Se o vídeo tem alguém falando, toque em ${K("Texto")} e depois em ${K("Legendas automáticas")}. A IA escuta e escreve sozinha.`,
+    `<b>Modelos prontos.</b> Na tela inicial tem ${K("Modelos")}: você escolhe um, troca as fotos pelas suas e o vídeo fica pronto com efeitos.`,
+    `<b>Exportar.</b> Toque na seta para cima no canto de cima. O vídeo vai para a galeria.`,
+    `<b>Vídeo criado pela IA.</b> Algumas IAs (Meta AI, Gemini, ChatGPT) já criam ou animam vídeos curtos a partir de um texto ou de uma foto. Muitas dessas funções têm limite no grátis ou são pagas. Teste o que estiver disponível no seu celular.`
+   ],
+   tip:"Vídeos de 15 a 30 segundos funcionam melhor nas redes. Comece com a parte mais legal logo no primeiro segundo.",
+   pratica:["Instalei o CapCut","Montei um vídeo com 5 fotos e música","Testei a legenda automática","Usei um modelo pronto","Exportei e salvei o vídeo na galeria"],
+   quiz:[{q:"Qual ferramenta escreve a legenda sozinha?",o:["Legendas automáticas do CapCut","O teclado"],c:0,e:"A IA do CapCut escuta e escreve a fala."},
+         {q:"Qual o tamanho bom para vídeo de rede social?",o:["10 minutos","15 a 30 segundos"],c:1,e:"Curto e direto prende mais a atenção."}],
+   glos:[["Exportar","Salvar o vídeo pronto na galeria."],["Modelo","Vídeo pronto onde você só troca as fotos."]]
+ },
+ { t:"Projeto: o seu primeiro clipe", min:"1h",
+   goal:"Juntar tudo que aprendeu num projeto só: letra, música, imagens e vídeo, e postar.",
+   need:["ChatGPT","Suno","CapCut","Meta AI ou ChatGPT para imagens"],
+   intro:"Hora de mostrar o que você aprendeu. Você vai fazer um clipe de verdade, do zero, usando quatro IAs diferentes. Escolha um tema que você curte: seu time, seu bairro, sua família, um rolê com os amigos.",
+   steps:[
+    `<b>Ideia.</b> Peça ao ChatGPT: <i>“me dá 5 ideias de tema para uma música curta sobre [seu tema]”</i>. Escolha uma.`,
+    `<b>Letra.</b> Peça a letra no estilo que você gosta. Ajuste até ficar a sua cara.`,
+    `<b>Música.</b> Cole a letra no Suno (modo Personalizado), escolha o estilo e gere. Salve a melhor versão.`,
+    `<b>Imagens.</b> Crie 4 imagens verticais combinando com a música (ChatGPT ou Meta AI). Salve todas na galeria.`,
+    `<b>Montagem.</b> No CapCut: novo projeto, coloque as 4 imagens, adicione a música e um título no começo.`,
+    `<b>Postar.</b> Exporte e poste no status do WhatsApp, Instagram ou TikTok. Guarde o vídeo para mostrar no encontro.`
+   ],
+   tip:"Não precisa ficar perfeito. O primeiro é para aprender. No encontro a gente vê juntos o que dá para melhorar.",
+   pratica:["Escolhi o tema com ajuda do ChatGPT","Fiz a letra","Gerei a música no Suno","Criei 4 imagens","Montei o clipe no CapCut","Postei ou guardei para mostrar no encontro"],
+   quiz:[{q:"Qual a ordem do projeto?",o:["Ideia → letra → música → imagens → vídeo","Vídeo → ideia → letra"],c:0,e:"Cada passo usa o resultado do anterior."}],
+   glos:[["Projeto","Um trabalho com várias etapas que vira uma coisa só."]]
+ },
+ { t:"Segurança e próximos passos", min:"40 min",
+   goal:"Usar a IA com segurança: não cair em golpe, proteger seus dados, evitar cobranças e saber continuar aprendendo sozinho.",
+   need:["Celular"],
+   intro:"A mesma tecnologia que cria coisas legais também é usada por golpistas. Quem entende como a IA funciona fica bem mais difícil de enganar.",
+   steps:[
+    `<b>Nunca mande para a IA:</b> senhas, número de cartão, foto de documento, dados do banco. Ela não precisa disso para te ajudar.`,
+    `<b>Voz e vídeo falsos existem.</b> A IA consegue imitar a voz e o rosto de pessoas. Se “um parente” pedir dinheiro por áudio ou vídeo, desligue e ligue você mesmo para o número que já conhece.`,
+    `<b>A IA erra.</b> Para saúde, remédio, dinheiro e leis, use a resposta só como ponto de partida e confirme com um profissional.`,
+    `<b>Cuidado com cobranças.</b> Muitos apps oferecem “teste grátis” que vira cobrança. Para ver e cancelar: Play Store → toque na sua foto → ${K("Pagamentos e assinaturas")} → ${K("Assinaturas")}.`,
+    `<b>Apps falsos.</b> Instale só pela Play Store e confira o nome da empresa. Nunca instale app por link que chegou no WhatsApp.`,
+    `<b>Continuar aprendendo.</b> Quando tiver dúvida em qualquer app, pergunte para a própria IA: <i>“como faço para colocar legenda no CapCut?”</i>. Ela vira sua professora particular.`
+   ],
+   tip:"Regra de ouro: se está com pressa, pedindo dinheiro ou pedindo código que chegou por SMS, é golpe até que se prove o contrário.",
+   pratica:["Conferi as minhas assinaturas na Play Store","Combinei uma palavra secreta com a família para confirmar pedidos de dinheiro","Perguntei para a IA como fazer algo em um app"],
+   quiz:[{q:"Chegou um áudio com a voz do seu filho pedindo PIX urgente. O que fazer?",o:["Mando o PIX rápido","Desligo e ligo para ele no número que conheço"],c:1,e:"A voz pode ser imitada por IA. Confirme sempre."},
+         {q:"Posso mandar a foto do meu RG para a IA?",o:["Pode, ela guarda segredo","Não, documentos e senhas ficam fora"],c:1,e:"Dados pessoais e documentos nunca."}],
+   glos:[["Golpe","Tentativa de enganar alguém para pegar dinheiro ou dados."],["Assinatura","Pagamento que se repete todo mês."],["Deepfake","Vídeo ou áudio falso feito com IA."]]
+ }
+];
+
+const ENCONTROS = [
+ { t:"Primeiros passos", revisa:["Usar Voltar, Início e Recentes sem medo","Instalar um app pela Play Store","Entrar no ChatGPT e conversar digitando e falando"], leva:["Celular carregado","Saber a senha do seu e-mail do Google","Anotar as dúvidas aqui embaixo"] },
+ { t:"Pedidos e dia a dia", revisa:["Receita do bom pedido","Copiar e colar entre apps","Foto + pergunta e Meta AI no WhatsApp"], leva:["Uma mensagem que você criou com a IA","Suas dúvidas anotadas"] },
+ { t:"Imagens e fotos", revisa:["Criar imagem com a receita","Salvar na galeria","Editar foto e conferir textos"], leva:["As 3 imagens de que você mais gostou","Suas dúvidas anotadas"] },
+ { t:"Música e vídeo", revisa:["Letra no ChatGPT + música no Suno","Montar vídeo e legenda no CapCut","Exportar e postar"], leva:["Sua música e seu vídeo salvos","Suas dúvidas anotadas"] },
+ { t:"Formatura", revisa:["Apresentar o clipe do projeto","Revisar os cuidados de segurança","Montar o plano para continuar sozinho"], leva:["O seu clipe pronto","O que você quer aprender depois"] }
+];
+
+/* ---------- peças visuais dos vídeos ---------- */
+const d_ = d => `style="--d:${d}s"`;
+const V = {
+  phone:(inner,d=0)=>`<div class="ph a" ${d_(d)}><div class="ph-scr">${inner}</div></div>`,
+  head:t=>`<div class="ph-head">${t}</div>`,
+  search:(t,d)=>`<div class="ph-search a" ${d_(d)}>🔍 <span class="ty" ${d_(d+.4)}>${t}</span></div>`,
+  row:(ico,name,by,d,hi,cls='')=>`<div class="ph-row a ${hi?'hi':''}" ${d_(d)}><span class="ico ${cls}">${ico}</span><div><b>${name}</b><small>${by}</small></div></div>`,
+  btn:(t,d,hi)=>`<div class="ph-btn a ${hi?'hi':''}" ${d_(d)}>${t}</div>`,
+  bub:(t,me,d)=>`<div class="bub a ${me?'me':''}" ${d_(d)}>${t}</div>`,
+  input:(t,btns,d=0)=>`<div class="ph-in a" ${d_(d)}><span class="f">${t}</span>${btns}</div>`,
+  dot:(t,d,hi)=>`<span class="dot ${hi?'hi':''}" ${hi?d_(d):''}>${t}</span>`,
+  flow:(arr,dd=1.2)=>`<div class="vflow">${arr.map((x,i)=>(i?`<span class="arr a" ${d_(i*dd-.3)}>→</span>`:'')+`<div class="fbx a" ${d_(i*dd)}>${x}</div>`).join('')}</div>`,
+  list:(arr,kind='',dd=1)=>`<div class="vlist">${arr.map((x,i)=>`<div class="vli ${kind} a" ${d_(.3+i*dd)}><i>${kind==='x'?'✕':kind==='w'?'!':'✓'}</i>${x}</div>`).join('')}</div>`,
+  big:(t,sub='',d=0)=>`<div class="a" ${d_(d)} style="text-align:center"><div class="vbig">${t}</div>${sub?`<p style="margin-top:.5em;font-size:1.15em">${sub}</p>`:''}</div>`,
+  grid:(hi,d=.4,nums=false)=>`<div class="vgrid">${[140,30,200,90,350,260,10,180,300].map((h,i)=>`<span class="a ${i===hi||(nums&&i<5)?'hi':''}" style="--d:${d+i*.15}s;background:hsl(${h} 55% 45%)">${nums&&i<5?i+1:''}</span>`).join('')}</div>`
+};
+function pic(style,bg){ // cena simples: pessoa no cenário. style: 'foto' | 'desenho'
+  const s = style==='desenho' ? 'stroke="#111" stroke-width="4"' : '';
+  const sky = bg==='praia' ? '#5cc8ff' : bg==='cinza' ? '#8a918c' : (style==='desenho'?'#7fd8ff':'#9cc3d8');
+  const ground = bg==='praia' ? '#f3d27a' : bg==='cinza' ? '#6d736f' : (style==='desenho'?'#5bd16a':'#6f9a62');
+  const skin = style==='desenho' ? '#ffcc99' : '#c99a78';
+  const shirt = style==='desenho' ? '#ff4d6d' : '#7a4b5a';
+  return `<svg viewBox="0 0 120 160" aria-hidden="true"><rect width="120" height="160" fill="${sky}"/>
+  ${bg==='praia'?'<circle cx="95" cy="30" r="14" fill="#ffe14d"/><rect y="88" width="120" height="16" fill="#2e8bd8"/>':''}
+  <rect y="100" width="120" height="60" fill="${ground}"/>
+  <rect x="38" y="82" width="44" height="78" rx="16" fill="${shirt}" ${s}/>
+  <circle cx="60" cy="62" r="20" fill="${skin}" ${s}/>
+  ${style==='desenho'?'<circle cx="53" cy="60" r="3" fill="#111"/><circle cx="67" cy="60" r="3" fill="#111"/><path d="M52 70 Q60 77 68 70" fill="none" stroke="#111" stroke-width="3"/>':'<circle cx="53" cy="60" r="2" fill="#3b2a20"/><circle cx="67" cy="60" r="2" fill="#3b2a20"/>'}
+  <path d="M40 56 Q60 30 80 56 Q70 44 60 44 Q50 44 40 56Z" fill="#3a2516" ${s}/></svg>`;
+}
+const ba=(a,b,la,lb)=>`<div class="vba"><div class="vcard a" ${d_(.2)}><b>${la}</b>${a}</div><span class="arr a" ${d_(1.4)}>→</span><div class="vcard a" ${d_(2.2)}><b>${lb}</b>${b}</div></div>`;
+const shield=`<svg viewBox="0 0 100 120" width="34%" class="a" aria-hidden="true"><path d="M50 4 L92 20 V58 C92 86 72 106 50 116 C28 106 8 86 8 58 V20Z" fill="#13251a" stroke="#39ff88" stroke-width="5"/><path d="M30 60 L45 75 L72 45" fill="none" stroke="#39ff88" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+/* ---------- roteiro dos vídeos (aulas pares) ---------- */
+const VIDEOS = {
+ 2:[
+  {title:"O que é IA?",v:V.flow(["Milhões de textos e imagens","A IA aprende os padrões","Ela conversa com você"]),cap:"Inteligência artificial é um programa que aprendeu lendo e vendo uma quantidade enorme de textos e imagens. Com isso, ela consegue conversar, escrever e criar coisas."},
+  {title:"Um ajudante esperto",v:V.list(["Responde dúvidas","Escreve mensagens","Cria imagens e músicas","Fica disponível 24 horas"]),cap:"Pense na IA como um ajudante esperto, sempre disponível. Ela responde dúvidas, escreve mensagens e até cria imagens e músicas para você."},
+  {title:"Instalando o ChatGPT",v:V.phone(V.head("Play Store")+V.search("ChatGPT",.5)+V.row("✦","ChatGPT","OpenAI ✓",1.8,true)+V.row("?","Chat IA Pro","Empresa desconhecida",2.4)),cap:"Abra a Play Store, toque na lupa e digite ChatGPT. Escolha o app da empresa OpenAI. Cuidado com os apps parecidos de outras empresas."},
+  {title:"Criando a conta",v:V.phone(`<div class="a" style="margin:auto 0 1em;text-align:center;font-weight:800;font-size:1.4em">ChatGPT</div>`+V.btn("G  Continuar com o Google",1,true)+V.btn("Continuar com e-mail",1.4)),cap:"Abra o app e toque em Continuar com o Google. Escolha o seu e-mail e pronto. Você não precisa inventar uma senha nova."},
+  {title:"A primeira conversa",v:V.phone(V.bub("Oi! Me explica o que você sabe fazer?",true,.6)+V.bub("Oi! Posso tirar dúvidas, escrever textos, criar imagens e muito mais. Por onde quer começar?",false,2.4)+V.input("Pergunte qualquer coisa",V.dot("↑"))),cap:"Toque na caixa de mensagem, escreva a sua pergunta e toque na setinha para enviar. A resposta aparece em poucos segundos."},
+  {title:"Prefere falar?",v:V.phone(V.bub("Qual a receita de um bom feijão?",true,.3)+V.input("Toque no microfone e fale",V.dot("🎤",1,true)+V.dot("≋",2.6,true))),cap:"Se não quiser digitar, toque no microfone e fale. E no botão de ondinhas você conversa por voz com a IA, como se fosse uma ligação."},
+  {title:"A IA também erra",v:V.list(["Saúde: confirme com o médico","Dinheiro: confirme com o banco","Notícia: confira em outro lugar"],'w',1.2),cap:"Atenção: a IA às vezes erra, mesmo falando com muita certeza. Para assuntos importantes, como saúde, dinheiro e notícias, sempre confira em outro lugar."},
+  {title:"Resumo da aula",v:V.list(["Instalar o app da OpenAI","Entrar com o Google","Perguntar digitando ou falando","Conferir o que é importante"],'',.8),cap:"Resumindo: instale o app certo, entre com o Google, converse digitando ou falando e confira as informações importantes. Agora é a sua vez de praticar!"}
+ ],
+ 4:[
+  {title:"A IA no seu dia a dia",v:V.flow(["Tire uma foto","Faça a pergunta","Receba a resposta"]),cap:"Hoje a IA entra na sua rotina. Você pode tirar uma foto de qualquer coisa e perguntar sobre ela, ou pedir um texto e mandar direto no WhatsApp."},
+  {title:"Foto + pergunta",v:V.phone(`<div class="a" ${d_(1)} style="height:38%;border-radius:.8em;background:linear-gradient(#9fd99a,#3f8a3a);display:grid;place-items:center;color:#fff;font-weight:800;align-self:flex-end;width:70%">🌿 foto</div>`+V.bub("Que planta é essa? Como eu cuido?",true,1.8)+V.bub("É uma costela-de-adão. Gosta de luz indireta e rega 1 vez por semana.",false,3.4)+V.input("Mensagem",V.dot("+",.2,true))),cap:"No ChatGPT, toque no botão de mais, escolha câmera e tire a foto. Depois escreva a pergunta. Funciona com plantas, comidas, etiquetas, quase tudo."},
+  {title:"Copiar a resposta",v:V.phone(V.bub("Feliz aniversário, João! 30 anos e ainda achando que é o craque do time. Saúde e muita resenha!",false,.3)+`<div class="ph-row a" ${d_(1.2)} style="gap:1em"><span class="dot hi" ${d_(1.2)}>⧉</span><small>Copiar</small></div>`),cap:"Embaixo de cada resposta tem o ícone de copiar, que parece dois quadradinhos. Toque nele e o texto fica guardado no celular."},
+  {title:"Colar no WhatsApp",v:V.phone(`<div class="ph-head" style="background:#075e54">João</div>`+`<div class="pop a" ${d_(1.4)}>Colar</div>`+V.input("Mensagem",V.dot("➤"),.3)),cap:"Agora abra a conversa no WhatsApp, segure o dedo na caixa de mensagem e toque em Colar. Leia, mude o que quiser e envie."},
+  {title:"Copiar e colar em 3 passos",v:V.flow(["Toque em Copiar","Abra o WhatsApp","Segure e toque em Colar"]),cap:"Grave estes três passos: toque em copiar, abra o outro aplicativo, segure o dedo na caixa de texto e toque em colar. Serve para qualquer app."},
+  {title:"Meta AI no WhatsApp",v:V.phone(V.head("WhatsApp")+V.row("","Meta AI","Pergunte qualquer coisa",1,true,"ring")+V.row("M","Maria","Bom dia!",.4)+V.row("F","Família","Foto",.6)),cap:"No WhatsApp aparece um círculo colorido azul e roxo. É a Meta AI. Toque nele e converse como se fosse um contato."},
+  {title:"Fale em vez de digitar",v:V.phone(`<div style="margin-top:auto" class="vgrid a">${'QWERTYUIO'.split('').map(l=>`<span style="background:#dfe6e1;color:#14211a;aspect-ratio:auto;padding:.3em">${l}</span>`).join('')}</div>`+V.input("Fale agora…",V.dot("🎤",1.2,true))),cap:"No teclado do celular também existe um microfone. Toque nele e fale. Serve no WhatsApp, no ChatGPT e em qualquer lugar que tenha caixa de texto."},
+  {title:"Resumo da aula",v:V.list(["Foto + pergunta no ChatGPT","Copiar e colar entre apps","Meta AI no WhatsApp","Microfone do teclado"],'',.8),cap:"Resumindo: foto mais pergunta, copiar e colar, a Meta AI dentro do WhatsApp e o microfone do teclado. Pratique cada um hoje mesmo!"}
+ ],
+ 6:[
+  {title:"A IA transforma suas fotos",v:V.flow(["Sua foto","Seu pedido","Foto nova"]),cap:"A IA não só cria imagens do zero. Ela também pega as fotos que você já tem e transforma do jeito que você pedir."},
+  {title:"Escolhendo a foto",v:V.phone(V.head("Escolha uma foto")+V.grid(4,.4)+V.input("Transforme em desenho",V.dot("↑"),2.2)),cap:"No ChatGPT, toque no botão de mais, escolha fotos e selecione uma foto da galeria. Depois escreva o que quer que a IA faça."},
+  {title:"De foto para desenho",v:ba(pic('foto'),pic('desenho'),'Antes','Depois'),cap:"Peça, por exemplo: transforme essa foto em desenho animado. Em alguns segundos a IA devolve uma versão nova da sua foto."},
+  {title:"Trocando o fundo",v:ba(pic('foto','cinza'),pic('foto','praia'),'Fundo sem graça','Fundo de praia'),cap:"Também dá para trocar o fundo. Escreva: coloque um fundo de praia. A pessoa continua a mesma, só o cenário muda."},
+  {title:"Arte com texto: confira!",v:`<div class="vba"><div class="vcard a" ${d_(.2)} style="background:#ff7a1a;display:grid;place-items:center;text-align:center;color:#fff;font-weight:800;font-size:1.2em;padding:.5em">CHURRASCO DO ZÉ<br><small>Sábado · 15h</small></div><div class="vcard a" ${d_(1.6)} style="background:#444;display:grid;place-items:center;text-align:center;color:#fff;font-weight:800;font-size:1.2em;padding:.5em"><span>CHURASCO DO ZÉE<br><small style="color:#ff6b5b">✕ letra errada</small></span></div></div>`,cap:"A IA cria artes com texto para divulgar eventos. Mas às vezes ela erra as letras. Sempre leia tudo antes de postar e peça para corrigir se precisar."},
+  {title:"Gemini: outra opção",v:V.list(["IA do Google","Mesma conta do Google","Recebe fotos e edita","Bom para comparar resultados"],'',.8),cap:"O Gemini é a IA do Google. Ele também recebe fotos e faz edições. Vale testar o mesmo pedido nos dois e escolher o resultado que ficou melhor."},
+  {title:"Respeito sempre",v:V.list(["Editar foto de alguém sem permissão","Criar foto falsa para enganar","Zoar alguém com imagem falsa"],'x',1),cap:"Regra importante: só edite foto de outra pessoa se ela deixar. E nunca crie foto falsa para enganar ou zoar alguém. Isso pode dar problema sério."},
+  {title:"Resumo da aula",v:V.list(["Mandar foto da galeria","Transformar em desenho","Trocar o fundo","Conferir os textos","Pedir permissão"],'',.7),cap:"Resumindo: mande a foto, peça a transformação, troque o fundo, confira os textos e sempre peça permissão. Bora criar!"}
+ ],
+ 8:[
+  {title:"O tamanho certo do vídeo",v:`<div style="width:100%;display:flex;flex-direction:column;align-items:center;gap:.6em"><div class="ruler a"><div class="zone" ${d_(1)}></div></div><div class="ticks a"><span>0s</span><span>15s</span><span>30s</span><span>45s</span><span>60s</span></div><p class="a" ${d_(2)} style="color:var(--vac);font-weight:700;font-size:1.2em">Ideal: 15 a 30 segundos</p></div>`,cap:"Nas redes sociais, vídeos curtos funcionam melhor. Mire entre 15 e 30 segundos e coloque a parte mais legal logo no começo."},
+  {title:"Conheça o CapCut",v:V.phone(V.head("CapCut")+V.btn("+ Novo projeto",.8,true)+V.btn("Modelos prontos",1.3)+V.btn("Legendas automáticas",1.7)),cap:"O CapCut é um editor de vídeo de celular com várias ferramentas de inteligência artificial. Instale pela Play Store e toque em Novo projeto."},
+  {title:"Escolha as fotos",v:V.phone(V.head("Galeria")+V.grid(-1,.3,true)+V.btn("Adicionar (5)",2.4,true)),cap:"Escolha quatro ou cinco fotos ou vídeos da sua galeria, na ordem em que quer que apareçam, e toque em Adicionar."},
+  {title:"A linha do tempo",v:`<div class="vtl"><div class="trk"><small>Imagens</small><div class="lane">${[140,30,200,90,350].map((h,i)=>`<span style="--d:${.3+i*.4}s;background:hsl(${h} 55% 45%)"></span>`).join('')}</div></div><div class="trk a" ${d_(2.4)}><small>Música</small><div class="wave" ${d_(2.6)}></div></div><div class="trk a" ${d_(4)}><small>Texto</small><div class="lane"><span style="--d:4.2s;background:#ffb357;flex:.5"></span><span style="--d:4.2s;background:transparent;flex:1.5"></span></div></div></div>`,cap:"Embaixo fica a linha do tempo. Primeiro vêm as imagens, depois você toca em Áudio para colocar a música e em Texto para escrever um título."},
+  {title:"Legenda automática",v:V.phone(`<div style="flex:1;border-radius:.6em;background:linear-gradient(#2a4d3a,#0d1a12);display:flex;align-items:flex-end;justify-content:center;padding:.6em"><span class="ty" style="--d:1.2s;background:#000;color:#ffe14d;font-weight:800;padding:.2em .5em;border-radius:.3em">E aí, pessoal! Olha o que eu fiz</span></div>`+V.btn("Texto › Legendas automáticas",.4,true)),cap:"Se alguém fala no vídeo, toque em Texto e depois em Legendas automáticas. A IA escuta o áudio e escreve a legenda sozinha."},
+  {title:"Exportar e salvar",v:V.phone(`<div class="ph-row"><span style="margin-left:auto" class="dot hi" ${d_(.4)}>↑</span></div><div class="a" ${d_(1)}><b>Exportando…</b><div class="pbar" style="margin-top:.5em"><i ${d_(1.2)}></i></div></div>`+V.btn("✓ Salvo na galeria",3.4,true)),cap:"Quando terminar, toque na seta para cima no canto da tela. Espere carregar e o vídeo fica salvo na galeria, pronto para postar."},
+  {title:"Vídeo feito pela IA",v:V.flow(["Texto ou foto","A IA anima","Vídeo curto"]),cap:"Algumas IAs já criam ou animam vídeos curtos a partir de um texto ou de uma foto. Muitas dessas funções têm limite no plano grátis ou são pagas."},
+  {title:"Resumo da aula",v:V.list(["Vídeo de 15 a 30 segundos","Novo projeto + fotos","Música e título","Legenda automática","Exportar para a galeria"],'',.7),cap:"Resumindo: vídeo curto, fotos na ordem, música, título, legenda automática e exportar. Agora monte o seu primeiro vídeo!"}
+ ],
+ 10:[
+  {title:"Use a IA com segurança",v:shield,cap:"A mesma tecnologia que cria coisas incríveis também é usada por golpistas. Quem entende como a IA funciona fica muito mais difícil de enganar."},
+  {title:"Nunca mande para a IA",v:V.list(["Senhas","Número do cartão","Foto de documento","Dados do banco"],'x',.9),cap:"Nunca mande para a IA as suas senhas, o número do cartão, foto de documento ou dados do banco. Ela não precisa disso para te ajudar."},
+  {title:"Voz e rosto podem ser falsos",v:V.phone(V.head("Mensagem de voz")+V.bub("▶ ▂▅▇▅▂▅▇  0:12",false,.4)+V.bub("“Mãe, perdi meu celular, me manda um PIX urgente?”",false,1.6)+`<div class="ph-btn a hi" ${d_(3.2)} style="color:#b42318;font-weight:800">⚠ Pode ser voz feita por IA</div>`),cap:"A IA consegue imitar a voz e até o rosto de pessoas. Um áudio com a voz de um parente pedindo dinheiro pode ser falso."},
+  {title:"O que fazer",v:V.flow(["Desconfie","Desligue","Ligue você para o número que conhece"]),cap:"Se alguém pedir dinheiro por áudio ou vídeo: desconfie, desligue e ligue você mesmo para o número que já conhece. Combine uma palavra secreta com a família."},
+  {title:"Os 3 sinais de golpe",v:V.list(["Pressa: “é urgente!”","Dinheiro: “manda um PIX”","Código: “me passa o código do SMS”"],'w',1.2),cap:"Fique ligado nos três sinais de golpe: pressa, pedido de dinheiro e pedido de código. Apareceu um deles, pare e confirme."},
+  {title:"Cuidado com assinaturas",v:V.flow(["Play Store","Sua foto","Pagamentos e assinaturas","Assinaturas"],1),cap:"Muitos apps oferecem teste grátis que depois vira cobrança. Para conferir e cancelar, abra a Play Store, toque na sua foto e vá em Pagamentos e assinaturas."},
+  {title:"A IA como professora",v:V.phone(V.bub("Como coloco legenda no CapCut?",true,.4)+V.bub("Abra o projeto, toque em Texto e depois em Legendas automáticas…",false,2)),cap:"Daqui para frente, quando tiver dúvida em qualquer aplicativo, pergunte para a própria IA. Ela vira a sua professora particular."},
+  {title:"Você concluiu o curso!",v:V.list(["Conversar com a IA","Criar imagens e editar fotos","Fazer música e vídeo","Usar com segurança"],'',.8),cap:"Parabéns! Agora você sabe conversar com a IA, criar imagens, músicas e vídeos, e usar tudo isso com segurança. Continue praticando!"}
+ ]
+};
+
+/* ---------- roteiros dos encontros (só professor) ---------- */
+const ROTEIROS = [
+ { dur:"1h30", obj:"Garantir que ele mexe no celular sem medo e consegue conversar com o ChatGPT sozinho.",
+   tl:[["0–10 min","Quebra-gelo. Pergunte como foi. Abra com ele a tela “Minhas dúvidas” do Encontro 1 e leia junto."],
+       ["10–30 min","Gestos e navegação. Peça para ele abrir o WhatsApp, voltar, ir para o Início, trocar de app pelo Recentes e ligar o Wi-Fi. Você só observa."],
+       ["30–55 min","ChatGPT. Confira se o app é da OpenAI e se a conta está logada. Ele faz 3 perguntas sobre coisas que curte (time, receita, música). Mostre o microfone e a conversa por voz."],
+       ["55–80 min","Exercício livre: ele pede para a IA explicar algo que sempre quis entender. Depois pede “explica mais simples”."],
+       ["80–90 min","Tarefa de casa, combinar a data do próximo encontro e tocar em “Já tivemos este encontro” no celular dele."]],
+   perg:["O que foi mais difícil até agora?","Teve alguma hora que você travou e não soube voltar?","O que você gostaria de fazer com a IA?"],
+   prob:[["Instalou app falso","Segure o ícone → Desinstalar. Instale o da OpenAI."],["Não lembra a senha do Google","Recuperar pelo número do celular em “Esqueceu a senha?”."],["Letra pequena","Configurações → Tela → Tamanho da fonte."],["Medo de estragar","Mostre que Voltar e Início resolvem quase tudo."]],
+   casa:"Fazer as aulas 3 e 4 e anotar as dúvidas no app.",
+   dica:"Regra das mãos no bolso: quem toca no celular é ele. Você fala, aponta e espera. É assim que ele aprende de verdade." },
+ { dur:"1h30", obj:"Ele pede bem para a IA e usa no dia a dia: foto + pergunta, copiar/colar e Meta AI.",
+   tl:[["0–10 min","Ler juntos as dúvidas do Encontro 2. Ver a mensagem que ele criou com a IA."],
+       ["10–30 min","Jogo do pedido ruim × bom: você fala um pedido vago, ele melhora usando o quê + para quem + como. Façam 3 rodadas."],
+       ["30–50 min","Copiar e colar ao vivo: ele cria uma mensagem para alguém real e envia pelo WhatsApp."],
+       ["50–70 min","Foto + pergunta: fotografar algo da sala (planta, comida, rótulo) e perguntar. Abrir a Meta AI no WhatsApp."],
+       ["70–90 min","Ditado pelo microfone do teclado, tarefa de casa e marcar o encontro como feito."]],
+   perg:["Você usou a IA em algum momento da semana sem eu pedir?","Para quem você mandou mensagem feita com a IA?"],
+   prob:[["Não aparece “Colar”","Segurar o dedo mais tempo dentro da caixa de mensagem."],["Meta AI não aparece","Atualizar o WhatsApp na Play Store. Pode não estar liberada em toda conta."],["Conversas misturadas","Usar o botão de nova conversa para cada assunto."]],
+   casa:"Fazer as aulas 5 e 6. Guardar as 3 imagens favoritas.",
+   dica:"Elogie o que ele fez antes de corrigir. Iniciante que se sente burro desiste." },
+ { dur:"1h30", obj:"Ele cria imagens, edita fotos, salva na galeria e entende a regra da permissão.",
+   tl:[["0–15 min","Ver as 3 imagens favoritas dele. Perguntar que pedido ele usou em cada uma."],
+       ["15–40 min","Desafio dos 3 ajustes: criar uma imagem do que ele gosta e melhorar com 3 pedidos seguidos."],
+       ["40–55 min","Salvar e achar na galeria. Postar uma no status."],
+       ["55–75 min","Transformar uma foto dele em desenho e trocar o fundo. Testar o mesmo pedido no ChatGPT e no Gemini e comparar."],
+       ["75–90 min","Conversa sobre permissão e imagem falsa. Tarefa e marcar encontro."]],
+   perg:["Qual imagem você mais gostou de criar?","Onde você usaria essas imagens?"],
+   prob:[["Acabou o limite grátis","Usar outra IA (Meta AI, Gemini) ou esperar o dia seguinte."],["Imagem não salva","Tocar e segurar a imagem → Salvar. Ver se o app tem permissão de fotos."],["Texto da arte saiu errado","Pedir “corrija o texto para…” ou refazer."]],
+   casa:"Fazer as aulas 7 e 8. Salvar a música e o vídeo.",
+   dica:"Puxe para o que ele curte (time, carro, música, família). Interesse pessoal faz ele praticar sozinho." },
+ { dur:"1h30", obj:"Ele faz música com Suno, monta vídeo no CapCut e define o tema do projeto final.",
+   tl:[["0–15 min","Ouvir as músicas dele. Assistir o vídeo que ele montou."],
+       ["15–40 min","Criar juntos uma música com o nome dele: letra no ChatGPT, música no Suno (modo personalizado)."],
+       ["40–70 min","Montar um vídeo no CapCut com essa música, título e legenda automática. Exportar."],
+       ["70–85 min","Planejar o projeto final: escolher o tema do clipe e anotar no app."],
+       ["85–90 min","Tarefa e marcar encontro."]],
+   perg:["Que estilo de música você mais curte?","Qual vai ser o tema do seu clipe?"],
+   prob:[["Créditos do Suno acabaram","Esperar renovar ou usar a versão que já gerou."],["Vídeo termina com tela do CapCut","Tocar no trecho final na linha do tempo e apagar, se o app permitir."],["Celular sem espaço","Apagar vídeos repetidos e limpar o cache em Configurações."]],
+   casa:"Fazer as aulas 9 e 10. Terminar o clipe e trazer pronto.",
+   dica:"Avise que música feita no plano grátis não deve ser usada em propaganda paga sem conferir as regras." },
+ { dur:"1h30", obj:"Formatura: apresentar o clipe, treinar segurança e montar o plano para ele continuar sozinho.",
+   tl:[["0–20 min","Sessão de estreia: assistir o clipe dele. Elogiar 3 coisas e dar 1 dica."],
+       ["20–40 min","Simulação de golpe: você finge ser um parente pedindo PIX por áudio. Ele aplica desconfie → desligue → ligue."],
+       ["40–55 min","Abrir juntos Play Store → Pagamentos e assinaturas e conferir se não tem cobrança. Combinar a palavra secreta com a família dele."],
+       ["55–75 min","Plano de continuidade: 3 coisas para praticar por semana e quais apps usar."],
+       ["75–90 min","Certificado (preencher o nome e tirar print). Pedir um depoimento curto e indicação de outro aluno."]],
+   perg:["O que você consegue fazer hoje que não fazia antes?","Conhece alguém que também gostaria de aprender?"],
+   prob:[["Esqueceu um passo antigo","Ele pergunta para a própria IA. Essa é a habilidade final."],["Assinatura ativa sem querer","Cancelar na Play Store na hora."]],
+   casa:"Continuar praticando 3 vezes por semana. Qualquer dúvida, mandar mensagem.",
+   dica:"Grave um vídeo curto dele falando do curso (com permissão). Serve de divulgação para os próximos alunos." }
+];
+
+const PRECOS = [
+ ["Hora-aula presencial avulsa","R$ 80","faixa comum: R$ 60 a R$ 100"],
+ ["Hora-aula online (chamada de vídeo)","R$ 60",""],
+ ["Só o app (10 aulas + 5 vídeos, sem encontros)","R$ 197","pagamento único"],
+ ["Pacote completo: app + 10 aulas + 5 encontros de 1h30 + suporte no WhatsApp","R$ 800","valor cheio (7h30 presenciais × R$ 80 + app R$ 200)"],
+ ["Pacote completo à vista","R$ 690","ou 3× de R$ 250"]
+];
+
+/* ---------- login ---------- */
+const fnv = s => { let h=0x811c9dc5; for (const c of s){ h^=c.charCodeAt(0); h=Math.imul(h,0x01000193)>>>0 } return h.toString(16) };
+const CONTAS = { "72174aa":"aluno", "b827558c":"prof" };
+let mem = {};
+const role = () => S('role', mem.role || null);
+const isProf = () => role()==='prof';
+function login(){
+  app.innerHTML=`<div class="login"><span class="brand">Curso de IA</span><h1>IA na Palma da Mão</h1>
+  <p style="color:var(--muted)">Entre com o usuário e a senha que o professor te passou.</p>
+  <form id="lf" class="box" autocomplete="on"><label for="lu">Usuário</label><input type="text" id="lu" autocapitalize="none" autocomplete="username">
+  <label for="lp">Senha</label><input type="text" id="lp" autocapitalize="none" autocomplete="current-password" style="-webkit-text-security:disc">
+  <div class="err" id="le" aria-live="polite"></div><button class="big" type="submit">Entrar</button></form>
+  <p class="foot">desenvolvido por BEMAPA CORP</p></div>`;
+  document.getElementById('lf').onsubmit=ev=>{ev.preventDefault();
+    const u=document.getElementById('lu').value.trim().toLowerCase(), p=document.getElementById('lp').value.trim();
+    const r=CONTAS[fnv(u+':'+p)];
+    if(!r){document.getElementById('le').textContent='Usuário ou senha errados. Confira e tente de novo.';return}
+    mem.role=r; W('role',r); location.hash=''; route(); toast(r==='prof'?'Bem-vindo, professor!':'Bem-vindo ao curso!');};
+}
+
+function roteiro(e){
+  const r=ROTEIROS[e-1], m=ENCONTROS[e-1]; if(!r) return home();
+  app.innerHTML=`${topbar(1)}
+  <div class="kicker m">Roteiro do professor · Encontro ${e} · ${r.dur}</div><h1>${m.t}</h1>
+  <div class="box goal"><h3>Objetivo do encontro</h3><p>${r.obj}</p></div>
+  <div class="box"><h2>Passo a passo do encontro</h2><ol class="tl">${r.tl.map(x=>`<li><span class="min">${x[0]}</span><span>${x[1]}</span></li>`).join('')}</ol></div>
+  <div class="box"><h2>Perguntas para fazer</h2>${r.perg.map(x=>`<p>• ${x}</p>`).join('')}</div>
+  <div class="box"><h2>Problemas comuns e solução</h2><dl>${r.prob.map(x=>`<div><dt>${x[0]}</dt><dd>${x[1]}</dd></div>`).join('')}</dl></div>
+  <div class="box tip"><h3>Dica de professor</h3><p>${r.dica}</p></div>
+  <div class="box"><h2>Tarefa para casa</h2><p>${r.casa}</p></div>
+  <a class="big meet" href="#encontro-${e}">Ver a tela do aluno deste encontro</a>`;
+}
+function precos(){
+  app.innerHTML=`${topbar(1)}<div class="kicker m">Só o professor vê</div><h1>Tabela de preços</h1>
+  <p style="color:var(--muted)">Sugestão de valores para o Rio de Janeiro. Ajuste conforme o aluno e a região.</p>
+  <div class="box tw"><table><thead><tr><th>Opção</th><th>Valor</th></tr></thead><tbody>
+  ${PRECOS.map(p=>`<tr><td>${p[0]}${p[2]?`<br><small style="color:var(--muted)">${p[2]}</small>`:''}</td><td class="v">${p[1]}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---------- player de vídeo ---------- */
+let stopVideo=()=>{};
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function videoBox(n){const sc=VIDEOS[n];const tot=sc.reduce((a,s)=>a+Math.max(8,Math.ceil(s.cap.length/12)),0);
+  return `<div class="box"><h2>Vídeo da aula</h2><div class="vid paused" id="vid"><div class="vstage" id="vstage"></div>
+  <button class="vposter" id="vposter" aria-label="Assistir o vídeo"><span class="pl">▶</span><b>${AULAS[n-1].t}</b><span>Vídeo animado · ${fmt(tot)}</span></button></div>
+  <div class="vcap" id="vcap">Toque em Assistir e aumente o volume. O vídeo tem música, efeitos sonoros e narração por voz (se o seu celular permitir).</div>
+  <div class="vctl"><button class="vbtn" id="vprev" aria-label="Cena anterior">⏮</button><button class="vbtn play" id="vplay">▶ Assistir</button><button class="vbtn" id="vnext" aria-label="Próxima cena">⏭</button><button class="chip" id="vvoz"></button><button class="chip" id="vsom"></button></div>
+  <div class="vprog"><i id="vbar"></i></div><div class="vtime"><span id="vscn">${sc.length} cenas</span><span id="vt">0:00 / ${fmt(tot)}</span></div></div>`;}
+/* ---------- sons do vídeo (gerados no próprio celular, sem arquivos) ---------- */
+const SOM = (() => {
+  let ctx=null, master=null, sfxBus=null, musBus=null, musTimer=null, step=0, nextT=0, on=true;
+  const pend=[];
+  function init(){
+    if(ctx) return true;
+    try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false;
+      ctx=new AC(); master=ctx.createGain(); master.gain.value=.9; master.connect(ctx.destination);
+      sfxBus=ctx.createGain(); sfxBus.gain.value=.55; sfxBus.connect(master);
+      musBus=ctx.createGain(); musBus.gain.value=.16; musBus.connect(master); return true; }catch(e){ return false; }
+  }
+  function env(g,t,a,peak,dec){ g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(peak,t+a); g.gain.exponentialRampToValueAtTime(0.0001,t+a+dec); }
+  function osc(type,f1,f2,len,vol,bus,when=0){ const t=ctx.currentTime+when, o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type; o.frequency.setValueAtTime(f1,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+len);
+    env(g,t,.01,vol,len); o.connect(g); g.connect(bus||sfxBus); o.start(t); o.stop(t+len+.05); }
+  let nbuf=null;
+  function noise(len,vol,f1,f2,q=1,bus,when=0,type='bandpass'){ if(!nbuf){ nbuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate); const d=nbuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1; }
+    const t=ctx.currentTime+when, s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), g=ctx.createGain();
+    s.buffer=nbuf; f.type=type; f.Q.value=q; f.frequency.setValueAtTime(f1,t); if(f2) f.frequency.exponentialRampToValueAtTime(f2,t+len);
+    env(g,t,.01,vol,len); s.connect(f); f.connect(g); g.connect(bus||sfxBus); s.start(t); s.stop(t+len+.05); }
+  const fx = {
+    whoosh(){ noise(.45,.5,300,3500,1.2) },
+    pop(){ osc('sine',520,980,.12,.45) },
+    send(){ osc('sine',700,1400,.14,.35); noise(.15,.15,2000,6000,1) },
+    receive(){ osc('sine',880,0,.09,.35); osc('sine',1320,0,.12,.3,null,.08) },
+    tap(){ osc('triangle',1500,700,.06,.5); noise(.04,.25,3000,0,2) },
+    type(len=1.1){ for(let k=0;k<len/.09;k++){ noise(.03,.18,2500+Math.random()*1500,0,3,null,k*.09) } },
+    ding(){ osc('sine',1046,0,.6,.35); osc('sine',1568,0,.5,.18,null,.04) },
+    no(){ osc('square',220,180,.16,.18); osc('square',180,140,.22,.18,null,.18) },
+    warn(){ osc('triangle',660,0,.15,.35); osc('triangle',440,0,.25,.35,null,.17) },
+    rise(len=1.2){ osc('sawtooth',200,900,len,.08); noise(len,.12,400,4000,.8) },
+    fanfare(){ [523,659,784,1046].forEach((f,k)=>osc('triangle',f,0,.35+(k===3?.6:0),.3,null,k*.14)) }
+  };
+  function play(name,delay=0,arg){ if(!on||!init()) return; const id=setTimeout(()=>{ try{ fx[name](arg) }catch(e){} }, delay*1000); pend.push(id); }
+  function clear(){ while(pend.length) clearTimeout(pend.pop()); }
+  // trilha de fundo: batida leve e alegre (100 bpm)
+  const BASS=[110,87.31,130.81,98], CH=[[220,261.6,329.6],[174.6,220,261.6],[261.6,329.6,392],[196,246.9,293.7]];
+  function sched(){
+    const spb=60/100/4;
+    while(nextT<ctx.currentTime+.15){
+      const t=nextT-ctx.currentTime, s=step%16, bar=Math.floor(step/16)%4;
+      if(s===0||s===8||s===10) { osc('sine',120,45,.22,.9,musBus,t) }
+      if(s===4||s===12) noise(.12,.5,1800,0,.7,musBus,t);
+      if(s%2===0) noise(.03,.22,9000,0,1,musBus,t,'highpass');
+      if(s===0||s===6||s===8||s===14) osc('triangle',BASS[bar],0,.25,.5,musBus,t);
+      if(s===0) CH[bar].forEach(f=>osc('sine',f,0,1.6,.12,musBus,t));
+      if(s===3||s===11) osc('sine',CH[bar][2]*2,0,.12,.08,musBus,t);
+      nextT+=spb; step++;
+    }
+  }
+  return {
+    get on(){return on}, set on(v){ on=v; if(!v){ clear(); this.stopMusic(); } },
+    unlock(){ if(init()&&ctx.state!=='running') ctx.resume().catch(()=>{}); },
+    play, clear,
+    startMusic(){ if(!on||!init()||musTimer) return; nextT=ctx.currentTime+.05; step=0;
+      musBus.gain.cancelScheduledValues(ctx.currentTime); musBus.gain.setValueAtTime(.16,ctx.currentTime); musTimer=setInterval(sched,50); },
+    duck(v){ if(ctx) musBus.gain.setTargetAtTime(v?.07:.16,ctx.currentTime,.2) },
+    stopMusic(){ if(musTimer){ clearInterval(musTimer); musTimer=null } },
+    stopAll(){ clear(); this.stopMusic(); }
+  };
+})();
+SOM.on = S('som', true);
+
+// lê as peças animadas da cena e marca o som de cada uma no tempo certo
+function sonsDaCena(st,last){
+  SOM.clear(); SOM.play('whoosh',0);
+  const delay=el=>{ const m=(el.getAttribute('style')||'').match(/--d:\s*([\d.]+)s/); return m?+m[1]:0 };
+  st.querySelectorAll('.vvis *').forEach(el=>{
+    const d=delay(el), c=el.classList;
+    if(c.contains('vli')) SOM.play(c.contains('x')?'no':c.contains('w')?'warn':'ding', d+.15);
+    else if(c.contains('bub')) SOM.play(c.contains('me')?'send':'receive', d+.1);
+    else if(c.contains('ty')) SOM.play('type', d, 1.1);
+    else if(c.contains('zone')||c.contains('wave')) SOM.play('rise', d, 1.1);
+    else if(el.tagName==='I' && el.parentElement.classList.contains('pbar')) SOM.play('rise', d, 2);
+    else if(c.contains('fbx')||c.contains('vcard')||c.contains('ph')) SOM.play('pop', d+.1);
+    else if(el.tagName==='SPAN' && el.parentElement.classList.contains('lane') && el.style.background!=='transparent') SOM.play('pop', d+.1);
+    else if(el.tagName==='SPAN' && el.parentElement.classList.contains('vgrid') && !c.contains('hi')) {}
+    if(c.contains('hi')) SOM.play('tap', d+.75);
+  });
+  if(st.querySelector('.vvis > svg')) SOM.play('ding',.3);
+  if(last) SOM.play('fanfare', 4);
+}
+
+function initVideo(n){
+  const sc=VIDEOS[n]; if(!sc) return;
+  const dur=sc.map(s=>Math.max(8,Math.ceil(s.cap.length/12))), total=dur.reduce((a,b)=>a+b,0);
+  const $=id=>document.getElementById(id);
+  let i=0,t=0,playing=false,ended=false,voz=S('voz',true);
+  const vid=$('vid'),st=$('vstage');
+  const synth=('speechSynthesis' in window)?window.speechSynthesis:null;
+  $('vvoz').textContent=synth?('Narração: '+(voz?'ligada':'desligada')):'Sem narração neste aparelho';
+  $('vsom').textContent='Sons e música: '+(SOM.on?'ligados':'desligados');
+  function speak(){try{if(!synth)return;synth.cancel();if(!voz||!playing)return;const u=new SpeechSynthesisUtterance(sc[i].cap);u.lang='pt-BR';
+    const pv=synth.getVoices().find(v=>/^pt[-_]BR/i.test(v.lang))||synth.getVoices().find(v=>/^pt/i.test(v.lang));if(pv)u.voice=pv;u.rate=1.05;
+    u.onstart=()=>SOM.duck(true);u.onend=()=>SOM.duck(false);synth.speak(u)}catch(e){}}
+  function upd(){const before=dur.slice(0,i).reduce((a,b)=>a+b,0);$('vbar').style.width=Math.min(100,(before+t)/total*100)+'%';
+    $('vscn').textContent=`Cena ${i+1} de ${sc.length}`;$('vt').textContent=fmt(before+t)+' / '+fmt(total);}
+  function render(){$('vposter').hidden=true;st.innerHTML=`<div class="vtitle a">${sc[i].title}</div><div class="vvis">${sc[i].v}</div>`;$('vcap').textContent=sc[i].cap;upd();}
+  function go(k){i=Math.max(0,Math.min(sc.length-1,k));t=0;ended=false;render();if(playing)sonsDaCena(st,i===sc.length-1);speak();}
+  function setPlay(p){playing=p;vid.classList.toggle('paused',!p);$('vplay').textContent=p?'❚❚ Pausar':(ended?'↺ Assistir de novo':'▶ Continuar');
+    if(p){SOM.unlock();SOM.startMusic();}else{SOM.stopAll();}}
+  function play(){if(ended){setPlay(true);go(0);return}if(!playing){const first=!$('vposter').hidden;setPlay(true);go(first?0:i);}else{setPlay(false);try{synth&&synth.cancel()}catch(e){}}}
+  $('vplay').onclick=play;$('vposter').onclick=play;
+  $('vprev').onclick=()=>{if(!playing)setPlay(true);go(i-1)};
+  $('vnext').onclick=()=>{if(!playing)setPlay(true);go(i+1)};
+  $('vvoz').onclick=()=>{if(!synth)return;voz=!voz;W('voz',voz);$('vvoz').textContent='Narração: '+(voz?'ligada':'desligada');if(voz)speak();else{synth.cancel();SOM.duck(false)}};
+  $('vsom').onclick=()=>{SOM.on=!SOM.on;W('som',SOM.on);$('vsom').textContent='Sons e música: '+(SOM.on?'ligados':'desligados');if(SOM.on&&playing){SOM.unlock();SOM.startMusic();sonsDaCena(st,i===sc.length-1)}};
+  const timer=setInterval(()=>{if(!playing)return;t+=.25;if(t>=dur[i]){if(i<sc.length-1)go(i+1);else{t=dur[i];ended=true;setPlay(false);}}upd();},250);
+  stopVideo=()=>{clearInterval(timer);SOM.stopAll();try{synth&&synth.cancel()}catch(e){}};
+}
+
+let state = { done:S('done',{}), meet:S('meet',{}), chk:S('chk',{}) };
+const app = document.getElementById('app');
+const total = AULAS.length;
+const nDone = () => AULAS.filter((_,i)=>state.done[i+1]).length;
+const etapaLiberada = e => e===0 || isProf() || state.meet[e]; // etapa e (0-4) libera após encontro e
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toast._);toast._=setTimeout(()=>t.hidden=true,2200)}
+
+function topbar(back){
+  return `<div class="top">${back?`<a class="chip back" href="#inicio">← Voltar</a>`:`<span class="brand">Curso de IA</span>`}
+  <div class="tools"><button class="chip" id="fs" aria-label="Mudar tamanho da letra">A A+</button><button class="chip" id="sair">Sair</button></div></div>`;
+}
+
+function home(){
+  const d=nDone(), pct=Math.round(d/total*100);
+  let next=AULAS.findIndex((_,i)=>!state.done[i+1]);
+  let nextHtml='';
+  if(next===-1) nextHtml=`<a class="big" href="#certificado">Ver meu certificado</a>`;
+  else { const e=Math.floor(next/2); nextHtml = etapaLiberada(e)
+     ? `<a class="big" href="#aula-${next+1}">${d?'Continuar':'Começar'}: Aula ${next+1}</a>`
+     : `<a class="big meet" href="#encontro-${e}">Próximo: Encontro ${e} com o Patrick</a>`; }
+  let trilha='';
+  for(let e=0;e<5;e++){
+    const lib=etapaLiberada(e);
+    let items='';
+    for(let j=0;j<2;j++){const n=e*2+j+1,a=AULAS[n-1],ok=state.done[n];
+      items+=`<a class="item ${ok?'done':''} ${lib?'':'lock'}" href="#aula-${n}"><span class="n">${ok?'✓':n}</span>
+      <span class="t"><small>Aula ${n} · ${a.min}</small><b>${a.t}</b></span>${!lib?'<span class="tag">depois do encontro</span>':''}</a>`;}
+    const m=state.meet[e+1];
+    items+=`<a class="item encontro" href="#encontro-${e+1}"><span class="n">${m?'✓':'☕'}</span>
+      <span class="t"><small>Encontro ${e+1} com o Patrick</small><b>${ENCONTROS[e].t}</b></span><span class="tag">${m?'feito':'tirar dúvidas'}</span></a>`;
+    trilha+=`<section class="etapa"><div class="etapa-h">Etapa ${e+1} <span>${['Começando','Usando no dia a dia','Imagens','Música e vídeo','Projeto final'][e]}</span></div>${items}</section>`;
+  }
+  app.innerHTML=`${topbar()}
+  <header class="hero"><h1>IA na Palma da Mão</h1>
+  <p>10 aulas para usar inteligência artificial no celular, do zero. Uma aula por vez, no seu ritmo. A cada 2 aulas a gente se encontra para tirar as dúvidas.</p></header>
+  <div class="prog"><div style="display:flex;justify-content:space-between"><span>Seu progresso</span><b>${d} de ${total} aulas</b></div>
+  <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div></div>
+  ${isProf()?`<div class="box prof"><div class="kicker m">Área do professor</div><h2>Roteiros dos encontros</h2>
+  ${ROTEIROS.map((r,k)=>`<a class="item encontro" href="#roteiro-${k+1}"><span class="n">${k+1}</span><span class="t"><small>Encontro ${k+1} · ${r.dur} · depois das aulas ${k*2+1} e ${k*2+2}</small><b>${ENCONTROS[k].t}</b></span><span class="tag">roteiro</span></a>`).join('')}
+  <a class="big ghost" href="#precos">Tabela de preços</a></div>`:''}
+  ${nextHtml}
+  ${trilha}
+  <p class="foot">Professor: Patrick · desenvolvido por BEMAPA CORP</p>`;
+}
+
+function aula(n){
+  const a=AULAS[n-1]; if(!a) return home();
+  const e=Math.floor((n-1)/2);
+  const ck=state.chk[n]||{};
+  const steps=a.steps.map(s=>`<li><div>${s}</div></li>`).join('');
+  const prat=a.pratica.map((p,i)=>`<label class="chk"><input type="checkbox" id="c${n}-${i}" data-i="${i}" ${ck[i]?'checked':''}><span>${p}</span></label>`).join('');
+  const quiz=a.quiz.map((q,qi)=>`<div class="q" data-q="${qi}"><b>${q.q}</b>${q.o.map((o,oi)=>`<button class="opt" data-o="${oi}">${o}</button>`).join('')}<div class="fb" aria-live="polite"></div></div>`).join('');
+  const glos=a.glos.map(g=>`<div><dt>${g[0]}</dt><dd>${g[1]}</dd></div>`).join('');
+  const prev=n>1?`<a class="big ghost" href="#aula-${n-1}">← Aula ${n-1}</a>`:'';
+  const after = n%2===0 ? `#encontro-${n/2}` : `#aula-${n+1}`;
+  app.innerHTML=`${topbar(1)}
+  ${!etapaLiberada(e)?`<div class="box tip"><h3>Calma, essa aula vem depois do Encontro ${e}</h3><p>Ela já está aqui para você dar uma olhada, mas o ideal é fazer depois de conversar com o Patrick.</p></div>`:''}
+  <div class="kicker">Aula ${n} de ${total} · ${a.min}</div>
+  <h1>${a.t}</h1>
+  <p>${a.intro}</p>
+  <div class="box goal"><h3>O que você vai aprender</h3><p>${a.goal}</p><div class="need">${a.need.map(x=>`<span>${x}</span>`).join('')}</div></div>
+  ${VIDEOS[n]?videoBox(n):''}
+  <div class="box"><h2>Passo a passo</h2><ol class="steps">${steps}</ol></div>
+  <div class="box tip"><h3>Dica do Patrick</h3><p>${a.tip}</p></div>
+  <div class="box"><h2>Agora é sua vez</h2><p style="color:var(--muted)">Faça e marque o que conseguiu. O que não conseguir, leve para o encontro.</p><div id="prat">${prat}</div></div>
+  <div class="box"><h2>Teste rápido</h2>${quiz}</div>
+  <div class="box"><h2>Palavras novas</h2><dl>${glos}</dl></div>
+  <button class="big" id="concluir">${state.done[n]?'✓ Aula concluída':'Terminei esta aula'}</button>
+  <div class="nav">${prev}<a class="big ghost" href="${after}">${n%2===0?'Encontro '+(n/2)+' →':'Aula '+(n+1)+' →'}</a></div>`;
+  app.querySelectorAll('#prat input').forEach(i=>i.onchange=()=>{state.chk[n]=state.chk[n]||{};state.chk[n][i.dataset.i]=i.checked;W('chk',state.chk)});
+  app.querySelectorAll('.q').forEach(qd=>{const q=a.quiz[qd.dataset.q];qd.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const ok=+b.dataset.o===q.c; qd.querySelectorAll('.opt').forEach(x=>x.classList.remove('ok','no'));
+    b.classList.add(ok?'ok':'no'); qd.querySelector('.fb').textContent=(ok?'Acertou! ':'Quase. ')+q.e; });});
+  if(VIDEOS[n]) initVideo(n);
+  document.getElementById('concluir').onclick=()=>{state.done[n]=true;W('done',state.done);
+    toast(n===total?'Você terminou todas as aulas!':'Aula '+n+' concluída!'); location.hash=after.slice(1)};
+}
+
+function encontro(e){
+  const m=ENCONTROS[e-1]; if(!m) return home();
+  const notas=S('notas'+e,'');
+  const feitas=[e*2-1,e*2].filter(n=>state.done[n]).length;
+  app.innerHTML=`${topbar(1)}
+  <div class="kicker m">Encontro ${e} de 5 · depois das aulas ${e*2-1} e ${e*2}</div>
+  ${isProf()?`<a class="big meet" href="#roteiro-${e}">Abrir o roteiro do professor</a>`:''}
+  <h1>${m.t}</h1>
+  <p>Hora de sentar junto com o Patrick, revisar o que você fez e tirar todas as dúvidas. Não existe pergunta boba.</p>
+  ${feitas<2?`<div class="box tip"><h3>Falta terminar ${2-feitas===1?'1 aula':'2 aulas'}</h3><p>Tente terminar as aulas ${e*2-1} e ${e*2} antes do encontro. Se travar em alguma coisa, anote abaixo.</p></div>`:''}
+  <div class="box"><h2>O que vamos revisar</h2>${m.revisa.map(r=>`<p>• ${r}</p>`).join('')}</div>
+  <div class="box"><h2>O que levar</h2>${m.leva.map(r=>`<p>• ${r}</p>`).join('')}</div>
+  <div class="box"><h2>Minhas dúvidas</h2><p style="color:var(--muted)">Escreva aqui (ou use o microfone do teclado). Fica salvo neste celular.</p>
+  <label for="notas${e}" hidden>Minhas dúvidas</label><textarea id="notas${e}" placeholder="Ex: não achei o botão de baixar a imagem…">${notas.replace(/</g,'&lt;')}</textarea></div>
+  <button class="big meet" id="feito">${state.meet[e]?'✓ Encontro feito':'Já tivemos este encontro'}</button>
+  ${e<5?`<a class="big ghost" href="#aula-${e*2+1}">Ir para a Aula ${e*2+1} →</a>`:`<a class="big ghost" href="#certificado">Ver meu certificado →</a>`}`;
+  const ta=document.getElementById('notas'+e); ta.oninput=()=>W('notas'+e,ta.value);
+  document.getElementById('feito').onclick=()=>{state.meet[e]=!state.meet[e];W('meet',state.meet);toast(state.meet[e]?'Encontro marcado como feito. Próxima etapa liberada!':'Desmarcado');encontro(e)};
+}
+
+function certificado(){
+  const d=nDone(), nome=S('nome','');
+  const hoje=new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
+  app.innerHTML=`${topbar(1)}
+  ${d<total?`<div class="box tip"><h3>Faltam ${total-d} aulas</h3><p>O certificado completa quando você terminar as 10 aulas.</p></div>`:''}
+  <div class="box"><label for="nome"><b>Seu nome no certificado</b></label><input type="text" id="nome" value="${nome.replace(/"/g,'&quot;')}" placeholder="Digite seu nome"></div>
+  <div class="cert"><div class="kicker">Certificado de conclusão</div><h2>IA na Palma da Mão</h2>
+  <p>Certificamos que</p><div class="nome" id="cn">${nome||'Seu nome aqui'}</div>
+  <p>${d<total?'está fazendo':'concluiu'} o curso de Inteligência Artificial no celular, com ${d} de ${total} aulas e ${Object.values(state.meet).filter(Boolean).length} encontros, aprendendo a criar textos, imagens, músicas e vídeos com IA.</p>
+  <p style="color:var(--muted)">${hoje} · Professor Patrick</p></div>
+  <p style="color:var(--muted);text-align:center;font-size:.9rem">Tire um print desta tela para guardar.</p>`;
+  const i=document.getElementById('nome'); i.oninput=()=>{W('nome',i.value);document.getElementById('cn').textContent=i.value||'Seu nome aqui'};
+}
+
+function route(){
+  stopVideo(); stopVideo=()=>{};
+  const h=location.hash.slice(1);
+  let m;
+  if(!role()) { login(); window.scrollTo(0,0); return; }
+  if((m=h.match(/^roteiro-(\d+)$/)) && isProf()) roteiro(+m[1]);
+  else if(h==='precos' && isProf()) precos();
+  else if((m=h.match(/^aula-(\d+)$/))) aula(+m[1]);
+  else if((m=h.match(/^encontro-(\d+)$/))) encontro(+m[1]);
+  else if(h==='certificado') certificado();
+  else home();
+  const fs=document.getElementById('fs'); if(fs) fs.onclick=()=>{const v=S('fs',18)>=22?18:S('fs',18)+2;W('fs',v);setFs();toast('Tamanho da letra: '+(v===18?'normal':v===20?'grande':'maior'))};
+  const sa=document.getElementById('sair'); if(sa) sa.onclick=()=>{mem.role=null;try{localStorage.removeItem('ia_role')}catch(e){}location.hash='';route();};
+  window.scrollTo(0,0);
+}
+function setFs(){document.documentElement.style.setProperty('--fs',S('fs',18)+'px')}
+setFs();
+window.addEventListener('hashchange',route);
+route();
+</script>
+
+</body>
+</html>
